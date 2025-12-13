@@ -1,0 +1,2 @@
+[2025-12-13 19:57:47,161][sentence_transformers.SentenceTransformer][INFO] - Use pytorch device_name: mps
+[2025-12-13 19:57:47,161][sentence_transformers.SentenceTransformer][INFO] - Load pretrained SentenceTransformer: BAAI/bge-m3

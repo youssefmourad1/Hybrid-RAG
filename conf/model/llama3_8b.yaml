@@ -1,0 +1,5 @@
+name: "llama3-8b"
+provider: "local"
+endpoint: "http://localhost:8080/v1"
+max_tokens: 1024
+temperature: 0.0

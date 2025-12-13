@@ -1,0 +1,5 @@
+name: "gpt-4o"
+provider: "openai"
+model_id: "gpt-4o"
+max_tokens: 1024
+temperature: 0.0
