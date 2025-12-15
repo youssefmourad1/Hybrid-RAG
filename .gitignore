@@ -4,3 +4,5 @@ data/
 
 
 run_local.py
+llama-cpp/
+models/
