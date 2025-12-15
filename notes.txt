@@ -1,2 +1,5 @@
     FAILED: 'QdrantClient' object has no attribute 'search'
     ERRRORS OF VERSIONS MISMATCHES
+
+https://github.com/vibrantlabsai/ragas/issues/2351 
+fixed issue on ragas

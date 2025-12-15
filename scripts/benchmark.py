@@ -62,14 +62,12 @@ def main(cfg: DictConfig):
     ensure_ingestion(cfg, vector_store)
     
     # 3. Load Test Set (FinanceBench)
-    # Assuming we use the HF sub-sample or full dataset
-    # For now, let's load a sample or expect a local file
     try:
-        ds = load_dataset("patronus-ai/financebench", split="train[:10]") # Sample for speed
+        log.info(f"Loading FinanceBench split: {cfg.data.split}")
+        ds = load_dataset("PatronusAI/financebench", split=cfg.data.split)
     except Exception as e:
-        log.warning(f"Could not load FinanceBench from HF: {e}. Checking local.")
-        # Fallback to dummy or local
-        ds = [] 
+        log.error(f"Could not load FinanceBench from HF: {e}. Checking local.")
+        raise NotImplementedError
 
     retriever = HybridRetriever(vector_store, cfg)
     engine = InferenceEngine(cfg)

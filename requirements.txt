@@ -18,3 +18,4 @@ sentence-transformers
 accelerate
 pypdf
 pyrootutils
+langchain-google-genai

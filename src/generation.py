@@ -48,7 +48,7 @@ class InferenceEngine:
                 {"role": "user", "content": prompt}
             ],
             temperature=self.cfg.model.temperature,
-            max_tokens=self.cfg.model.max_tokens
+            max_completion_tokens=self.cfg.model.max_tokens # IF USING OLDER OPENAI MODELS CHANGE IT TO max_tokens instead
         )
         
         return response.choices[0].message.content

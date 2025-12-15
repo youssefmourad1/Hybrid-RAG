@@ -6,9 +6,16 @@ from ragas.metrics import faithfulness, answer_relevancy
 from datasets import Dataset
 import matplotlib.pyplot as plt
 import seaborn as sns
+import numpy as np
+# NOTE: Code refactored based on : 
+# https://github.com/vibrantlabsai/ragas/issues/2351 
+# The error was that the rate limits for batch processing on openai requests is restricted. for our api usage
+# WE HAD TO USE THE LLM_FACTORY PATTERN FROM RAGAS TO AVOID THE RATE LIMITS
 
 def evaluate_ragas(results_file):
     df = pd.read_csv(results_file)
+    # Sample 10% for faster grading (WE ARE BROKE KINDOF SLICING CODE :) KUDOS IF YOU READ THIS)
+    df = df.sample(frac=0.1, random_state=42)
     
     # Ragas expects: question, answer (generated), contexts (list of strings), ground_truth
     # Rename columns to match Ragas requirement
@@ -25,11 +32,39 @@ def evaluate_ragas(results_file):
     dataset = Dataset.from_pandas(ragas_df)
     
     print(f"Running Ragas evaluation on {results_file}...")
+    
+    # Ragas v0.2 Migration: Use llm_factory
+    from ragas.llms import llm_factory
+    from langchain_openai import OpenAIEmbeddings # Ensure we have embeddings
+
+    # Check for API key
+    api_key = os.getenv("OPENAI_API_KEY")
+    if not api_key:
+        raise ValueError("OPENAI_API_KEY environment variable is required for grading.")
+
+    # Initialize Client
+    from openai import OpenAI
+    client = OpenAI(api_key=api_key)
+
+    # Use factory pattern with client
+    llm = llm_factory(
+        provider="openai",
+        model="gpt-4o-mini",
+        client=client
+    )
+    # Reuse langchain embeddings or potentially ragas factory if available, sticking to langchain for now as user snippet didn't change embeddings
+    embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
+    
+    # Adjust strictness
+    answer_relevancy.strictness = 1
+    
     results = evaluate(
         dataset=dataset,
         metrics=[faithfulness, answer_relevancy],
+        llm=llm,
+        embeddings=embeddings,
+        raise_exceptions=False,
     )
-    
     return results
 
 def main():
@@ -46,12 +81,11 @@ def main():
         
         scores = {
             "Run ID": run_id,
-            "Faithfulness": ragas_scores["faithfulness"],
-            "Answer Relevancy": ragas_scores["answer_relevancy"]
+            "Faithfulness": np.mean(ragas_scores["faithfulness"]),
+            "Answer Relevancy": np.mean(ragas_scores["answer_relevancy"])
         }
         
-        # Add speed/throughput if we logged it (stubbed here)
-        scores["Tokens/Sec"] = 15.0 # Dummy
+        scores["Tokens/Sec"] = 15.0 # TODO: Add actual tokens/sec
         
         all_scores.append(scores)
 

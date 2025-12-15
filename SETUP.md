@@ -63,12 +63,12 @@ You need a quantized model file (.gguf) to run locally. We recommend **Llama-3-8
     
     **Mac/Linux**:
     ```bash
-    huggingface-cli download Meta-Llama/Meta-Llama-3-8B-Instruct-GGUF --include "Meta-Llama-3-8B-Instruct-Q4_K_M.gguf" --local-dir ./models
+    hf download QuantFactory/Meta-Llama-3-8B-Instruct-GGUF --include "Meta-Llama-3-8B-Instruct.Q4_K_M.gguf" --local-dir ./models
     ```
     
     **Windows**:
     ```cmd
-    huggingface-cli download Meta-Llama/Meta-Llama-3-8B-Instruct-GGUF --include "Meta-Llama-3-8B-Instruct-Q4_K_M.gguf" --local-dir .\models
+    hf download QuantFactory/Meta-Llama-3-8B-Instruct-GGUF --include "Meta-Llama-3-8B-Instruct.Q4_K_M.gguf" --local-dir .\models
     ```
     
     *This saves the model to the `models/` folder in your project.*

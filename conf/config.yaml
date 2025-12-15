@@ -11,6 +11,7 @@ hydra:
 data:
   raw_dir: ${hydra:runtime.cwd}/data/raw
   processed_dir: ${hydra:runtime.cwd}/data/processed
+  split: "train[:10]"
 
 qdrant:
   host: "localhost"
