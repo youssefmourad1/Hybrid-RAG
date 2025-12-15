@@ -31,7 +31,7 @@ class InferenceEngine:
                 base_url=cfg.model.endpoint,
                 api_key="sk-no-key-required"
             )
-            self.model_id = cfg.model.name # e.g. "llama-3-8b" (ignored by many local servers but refined)
+            self.model_id = cfg.model.name 
         elif cfg.model.provider == "openai":
             self.client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
             self.model_id = cfg.model.model_id

@@ -18,14 +18,13 @@ class HybridQdrantClient:
         self.collection_name = cfg.qdrant.collection_name
         self.dense_model_name = cfg.retrieval.dense_model
         # Initialize embedding models
-        # Note: BGE-M3 is supported by SentenceTransformer
+        # NOTE: BGE-M3 is supported by SentenceTransformer
         print(f"Loading Dense Model: {self.dense_model_name}")
         self.dense_model = SentenceTransformer(self.dense_model_name)
         
         # init sparse model if hybrid
         self.use_sparse = cfg.retrieval.strategy == "hybrid"
         if self.use_sparse:
-             # Using BGE-M3 for sparse if possible, or fallback to SPLADE which is reliable in FastEmbed
              self.sparse_model_name = "prithivida/Splade_PP_En_v1" # Standard good sparse
              print(f"Loading Sparse Model: {self.sparse_model_name}")
              self.sparse_model = SparseTextEmbedding(model_name=self.sparse_model_name)
@@ -35,8 +34,9 @@ class HybridQdrantClient:
     def _ensure_collection(self):
         if not self.client.collection_exists(self.collection_name):
             print(f"Creating collection {self.collection_name}")
+            dim = self.dense_model.get_sentence_embedding_dimension()
             vectors_config = {
-                "dense": VectorParams(size=1024, distance=Distance.COSINE) # BGE-M3 is 1024
+                "dense": VectorParams(size=dim, distance=Distance.COSINE)
             }
             sparse_vectors_config = {}
             if self.use_sparse:
@@ -68,7 +68,7 @@ class HybridQdrantClient:
             vector = {"dense": dense_embeddings[i].tolist()}
             if self.use_sparse:
                 # NOTE: check the slicing of sparse_embeddings[i] 
-                vector["sparse"] = Models.SparseVector(
+                vector["sparse"] = models.SparseVector(
                     indices=sparse_embeddings[i].indices.tolist(), 
                     values=sparse_embeddings[i].values.tolist()
                 )
@@ -89,29 +89,28 @@ class HybridQdrantClient:
         # NOTE FOR ABDELLAH: This will be used by retrieval.py
         # Dense Search
         dense_gen = self.dense_model.encode([query], convert_to_numpy=True)[0]
-        dense_results = self.client.search(
+        dense_results = self.client.query_points(
             collection_name=self.collection_name,
-            query_vector=models.NamedVector(name="dense", vector=dense_gen.tolist()),
+            query=dense_gen.tolist(),
+            using="dense",
             limit=top_k,
             with_payload=True
-        )
+        ).points
         
         results = {"dense": dense_results, "sparse": []}
 
         if self.use_sparse:
             sparse_gen = list(self.sparse_model.embed([query]))[0]
-            sparse_results = self.client.search(
+            sparse_results = self.client.query_points(
                 collection_name=self.collection_name,
-                query_vector=models.NamedSparseVector(
-                    name="sparse", 
-                    vector=models.SparseVector(
-                        indices=sparse_gen.indices.tolist(),
-                        values=sparse_gen.values.tolist()
-                    )
+                query=models.SparseVector(
+                    indices=sparse_gen.indices.tolist(),
+                    values=sparse_gen.values.tolist()
                 ),
+                using="sparse",
                 limit=top_k,
                 with_payload=True
-            )
+            ).points
             results["sparse"] = sparse_results
             
         return results

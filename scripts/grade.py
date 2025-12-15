@@ -14,7 +14,7 @@ def evaluate_ragas(results_file):
     # Rename columns to match Ragas requirement
     ragas_df = df.rename(columns={
         "generated_answer": "answer",
-        "context": "contexts", # script saved as string repr of list, need to eval
+        "context": "contexts",
         "ground_truth": "ground_truth"
     })
     
